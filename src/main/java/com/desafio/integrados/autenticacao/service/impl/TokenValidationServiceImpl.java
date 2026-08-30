@@ -26,7 +26,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
     ) {
         if (validTokensConfig != null && validTokensConfig.length > 0) {
             this.validTokens = Arrays.stream(validTokensConfig)
-                    .map(String::trim)
+                    .map(t -> t.trim())
                     .filter(token -> !token.isEmpty())
                     .collect(Collectors.toUnmodifiableSet());
         } else {

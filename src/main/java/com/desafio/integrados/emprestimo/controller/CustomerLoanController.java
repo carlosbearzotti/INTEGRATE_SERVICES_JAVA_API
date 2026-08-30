@@ -25,7 +25,7 @@ public class CustomerLoanController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/customer-loans")
+    @PostMapping({"/customer-loans", "/api/customer-loans"})
     @PublicEndpoint
     public ResponseEntity<CustomerLoanResponse> determineCustomerLoans(@Valid @RequestBody CustomerLoanRequest request) {
         CustomerLoanResponse response = loanService.determineLoans(request);

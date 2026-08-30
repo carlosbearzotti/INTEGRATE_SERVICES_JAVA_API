@@ -45,7 +45,7 @@ public class DataInitializer implements CommandLineRunner {
                 new PointOfInterest("Churrascaria", 28, 2)
         );
 
-        repository.saveAll(samplePois);
+        repository.saveAll(java.util.Objects.requireNonNull(samplePois));
         log.info("Base de dados de exemplo carregada com {} POIs.", samplePois.size());
     }
 }

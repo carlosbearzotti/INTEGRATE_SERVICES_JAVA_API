@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SuppressWarnings("null")
 @SpringBootTest
 @AutoConfigureMockMvc
 class PasswordValidationControllerTest {
@@ -24,7 +25,7 @@ class PasswordValidationControllerTest {
     void shouldReturn204WhenPasswordIsValid() throws Exception {
         String jsonRequest = """
                 {
-                    "password": "vYQIYxO&p$yfI^r"
+                    "password": "vYQIYxO&p$yfI^r1"
                 }
                 """;
 

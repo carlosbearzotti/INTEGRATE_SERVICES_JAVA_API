@@ -81,13 +81,13 @@ public class UserService {
         );
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id)
+    public User findById(@org.springframework.lang.NonNull Long id) {
+        return userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com id: " + id));
     }
 
-    public UserProfileResponse getProfile(Long userId) {
-        User user = findById(userId);
+    public UserProfileResponse getProfile(@org.springframework.lang.NonNull Long userId) {
+        User user = findById(java.util.Objects.requireNonNull(userId));
         return new UserProfileResponse(
                 user.getId(),
                 user.getName(),

@@ -21,7 +21,7 @@ import java.util.List;
  * Controller REST para cadastro e consulta de Pontos de Interesse (POIs).
  */
 @RestController
-@RequestMapping("/pois")
+@RequestMapping({"/pois", "/api/pois"})
 public class PointOfInterestController {
 
     private final PointOfInterestService service;

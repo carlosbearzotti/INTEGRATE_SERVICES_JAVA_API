@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Objects;
 
 @RestController
 public class UrlShortenerController {
@@ -26,12 +28,12 @@ public class UrlShortenerController {
         this.urlShortenerService = urlShortenerService;
     }
 
-    @PostMapping("/shorten-url")
+    @PostMapping({"/shorten-url", "/api/shorten-url"})
     public ResponseEntity<ShortenUrlResponse> shortenUrl(
             @Valid @RequestBody ShortenUrlRequest request,
-            HttpServletRequest httpServletRequest) {
+            @NonNull HttpServletRequest httpServletRequest) {
 
-        String baseUrl = ServletUriComponentsBuilder.fromRequestUri(httpServletRequest)
+        String baseUrl = ServletUriComponentsBuilder.fromRequestUri(Objects.requireNonNull(httpServletRequest))
                 .replacePath(null)
                 .build()
                 .toUriString();
@@ -45,7 +47,7 @@ public class UrlShortenerController {
         String originalUrl = urlShortenerService.getOriginalUrlAndTrackAccess(shortCode);
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(originalUrl))
+                .location(Objects.requireNonNull(URI.create(originalUrl)))
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .build();
     }

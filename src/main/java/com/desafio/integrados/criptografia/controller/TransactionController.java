@@ -5,10 +5,12 @@ import com.desafio.integrados.criptografia.dto.TransactionDTO;
 import com.desafio.integrados.criptografia.service.TransactionService;
 import com.desafio.integrados.usuario.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -36,8 +38,8 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionDTO> findById(@PathVariable Long id) {
-        TransactionDTO result = service.findById(id);
+    public ResponseEntity<TransactionDTO> findById(@PathVariable @NonNull Long id) {
+        TransactionDTO result = service.findById(Objects.requireNonNull(id));
         if (result != null) {
             return ResponseEntity.ok(result);
         }
@@ -54,8 +56,8 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TransactionDTO> update(@PathVariable Long id, @RequestBody TransactionDTO dto) {
-        TransactionDTO result = service.update(id, dto);
+    public ResponseEntity<TransactionDTO> update(@PathVariable @NonNull Long id, @RequestBody TransactionDTO dto) {
+        TransactionDTO result = service.update(Objects.requireNonNull(id), dto);
         if (result != null) {
             return ResponseEntity.ok(result);
         }
@@ -63,8 +65,8 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable @NonNull Long id) {
+        service.delete(Objects.requireNonNull(id));
         return ResponseEntity.ok().build();
     }
 }

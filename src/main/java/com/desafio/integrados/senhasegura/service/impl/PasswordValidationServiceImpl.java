@@ -24,7 +24,7 @@ public class PasswordValidationServiceImpl implements PasswordValidationService 
 
         List<String> failures = rules.stream()
                 .filter(rule -> !rule.isValid(password))
-                .map(PasswordRule::getFailureMessage)
+                .map(rule -> rule.getFailureMessage())
                 .collect(Collectors.toList());
 
         if (!failures.isEmpty()) {

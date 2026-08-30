@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -20,7 +21,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final JwtService jwtService;
 
     @Autowired
-    public AuthenticationInterceptor(TokenValidationService tokenValidationService,
+    public AuthenticationInterceptor(@Autowired(required = false) TokenValidationService tokenValidationService,
                                      @Autowired(required = false) JwtService jwtService) {
         this.tokenValidationService = tokenValidationService;
         this.jwtService = jwtService;
@@ -31,9 +32,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         // Permite requisições pre-flight CORS
-        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+        String method = request.getMethod();
+        if (method != null && HttpMethod.OPTIONS.matches(method)) {
             return true;
         }
 
@@ -54,7 +56,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             throw new InvalidTokenException("Cabeçalho 'Authorization' ausente ou vazio.");
         }
 
-        if (!tokenValidationService.isValid(authorizationHeader)) {
+        if (tokenValidationService == null || !tokenValidationService.isValid(authorizationHeader)) {
             throw new InvalidTokenException("Token de autorização inválido ou expirado.");
         }
 

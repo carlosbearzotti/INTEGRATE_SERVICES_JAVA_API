@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.desafio.integrados.usuario")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class UsuarioExceptionHandler {
 
@@ -48,6 +48,18 @@ public class UsuarioExceptionHandler {
         body.put("message", ex.getMessage());
         body.put("path", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(com.desafio.integrados.senhasegura.exception.InvalidPasswordException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPassword(com.desafio.integrados.senhasegura.exception.InvalidPasswordException ex, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+        body.put("failures", ex.getFailures());
+        body.put("path", request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

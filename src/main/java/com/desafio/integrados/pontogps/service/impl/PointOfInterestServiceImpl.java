@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -81,7 +80,7 @@ public class PointOfInterestServiceImpl implements PointOfInterestService {
         // Mapeia para DTO com distância calculada e ordena pela menor distância para melhor usabilidade
         List<NearbyPoiResponse> responses = nearbyList.stream()
                 .map(poi -> NearbyPoiResponse.fromEntityAndReference(poi, reference))
-                .sorted(Comparator.comparingDouble(NearbyPoiResponse::distanceInMeters))
+                .sorted((a, b) -> Double.compare(a.distanceInMeters(), b.distanceInMeters()))
                 .toList();
 
         log.info("Consulta por proximidade concluída: {} POI(s) encontrado(s)", responses.size());

@@ -1,13 +1,8 @@
 package com.desafio.integrados.autenticacao.repository;
 
-import com.desafio.integrados.autenticacao.domain.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-    Optional<User> findByCpf(String cpf);
+/**
+ * @deprecated Use {@link com.desafio.integrados.usuario.repository.UserRepository}.
+ */
+@Deprecated
+public interface UserRepository {
 }

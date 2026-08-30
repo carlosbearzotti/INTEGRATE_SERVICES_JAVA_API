@@ -3,8 +3,8 @@ package com.desafio.integrados.pontogps.controller;
 import com.desafio.integrados.pontogps.dto.CreatePoiRequest;
 import com.desafio.integrados.pontogps.dto.NearbyPoiResponse;
 import com.desafio.integrados.pontogps.dto.PoiResponse;
-import com.desafio.integrados.pontogps.exception.GlobalExceptionHandler;
 import com.desafio.integrados.pontogps.exception.InvalidCoordinateException;
+import com.desafio.integrados.pontogps.exception.PointOfInterestExceptionHandler;
 import com.desafio.integrados.pontogps.service.PointOfInterestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("null")
 @WebMvcTest(PointOfInterestController.class)
-@Import(GlobalExceptionHandler.class)
+@Import(PointOfInterestExceptionHandler.class)
 @DisplayName("Testes de Integração do Controller PointOfInterestController")
 class PointOfInterestControllerTest {
 

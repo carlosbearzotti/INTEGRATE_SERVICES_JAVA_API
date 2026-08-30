@@ -15,7 +15,7 @@ import com.desafio.integrados.criptografia.crypto.AesCryptoConverter;
 import com.desafio.integrados.criptografia.crypto.RsaCryptoConverter;
 
 @Entity
-@Table(name = "transaction")
+@Table(name = "transactions")
 public class Transaction {
 
     @Id
@@ -34,7 +34,7 @@ public class Transaction {
     @Column(name = "credit_card_token", length = 2048)
     private String creditCardToken;
 
-    @Column(name = "value")
+    @Column(name = "transaction_value")
     private Long value;
 
     public Transaction() {

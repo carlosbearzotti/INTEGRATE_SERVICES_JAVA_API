@@ -31,7 +31,7 @@ class PasswordValidationServiceTest {
     @Test
     @DisplayName("Deve validar com sucesso quando a senha atender a todos os critérios")
     void shouldValidateSuccessfullyWhenPasswordIsValid() {
-        PasswordValidationRequest request = new PasswordValidationRequest("vYQIYxO&p$yfI^r");
+        PasswordValidationRequest request = new PasswordValidationRequest("vYQIYxO&p$yfI^r1");
 
         assertDoesNotThrow(() -> service.validate(request));
     }

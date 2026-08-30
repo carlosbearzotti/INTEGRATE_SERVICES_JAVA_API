@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("null")
 @DataJpaTest
 @DisplayName("Testes de Integração do Repositório PointOfInterestRepository")
 class PointOfInterestRepositoryTest {

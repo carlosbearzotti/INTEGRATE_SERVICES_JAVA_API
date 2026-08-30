@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("null")
 @SpringBootTest
 @AutoConfigureMockMvc
 class EndToEndFlowTest {
@@ -37,8 +38,12 @@ class EndToEndFlowTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.desafio.integrados.criptografia.repository.TransactionRepository transactionRepository;
+
     @BeforeEach
     void setUp() {
+        transactionRepository.deleteAll();
         userRepository.deleteAll();
     }
 
