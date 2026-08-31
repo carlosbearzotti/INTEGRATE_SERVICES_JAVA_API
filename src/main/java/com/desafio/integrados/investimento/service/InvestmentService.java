@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class InvestmentService {
 
     private final InvestmentProductRepository productRepository;

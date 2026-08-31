@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class ScheduledTransferService {
 
     private final ScheduledTransferRepository transferRepository;

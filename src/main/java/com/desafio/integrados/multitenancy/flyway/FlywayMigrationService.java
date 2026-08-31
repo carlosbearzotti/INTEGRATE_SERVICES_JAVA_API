@@ -56,6 +56,7 @@ public class FlywayMigrationService {
                 .baselineOnMigrate(true)
                 .load();
 
+        flyway.repair();
         flyway.migrate();
         log.info("Schema '{}' migrado com sucesso!", schemaName);
     }

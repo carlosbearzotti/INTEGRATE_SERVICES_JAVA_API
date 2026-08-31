@@ -33,3 +33,10 @@ target/
 ### OS files ###
 .DS_Store
 Thumbs.db
+
+### Local DB Data ###
+data/
+*.mv.db
+*.trace.db
+HashGenerator.java
+

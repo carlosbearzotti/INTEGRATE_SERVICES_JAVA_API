@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class ComplianceService {
 
     private final UserRepository userRepository;

@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("null")
 @WebMvcTest(PointOfInterestController.class)
-@Import(PointOfInterestExceptionHandler.class)
+@Import({PointOfInterestExceptionHandler.class, com.desafio.integrados.autenticacao.config.SecurityConfig.class})
 @DisplayName("Testes de Integração do Controller PointOfInterestController")
 class PointOfInterestControllerTest {
 
