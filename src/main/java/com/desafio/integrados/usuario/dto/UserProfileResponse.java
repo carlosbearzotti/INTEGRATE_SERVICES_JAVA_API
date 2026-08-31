@@ -10,11 +10,16 @@ public class UserProfileResponse {
     private Integer age;
     private Double latitude;
     private Double longitude;
+    private String role;
 
     public UserProfileResponse() {
     }
 
     public UserProfileResponse(Long id, String name, String email, String cpf, Double income, Integer age, Double latitude, Double longitude) {
+        this(id, name, email, cpf, income, age, latitude, longitude, "ROLE_CUSTOMER");
+    }
+
+    public UserProfileResponse(Long id, String name, String email, String cpf, Double income, Integer age, Double latitude, Double longitude, String role) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -23,6 +28,7 @@ public class UserProfileResponse {
         this.age = age;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.role = role != null ? role : "ROLE_CUSTOMER";
     }
 
     public Long getId() { return id; }
@@ -41,4 +47,6 @@ public class UserProfileResponse {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

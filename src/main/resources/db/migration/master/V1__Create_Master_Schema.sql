@@ -1,3 +1,7 @@
+-- =============================================================================
+-- V1: SCHEMA MASTER & TABELAS PRINCIPAIS DO LÃOBANK
+-- =============================================================================
+
 CREATE TABLE IF NOT EXISTS consumers (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -7,7 +11,76 @@ CREATE TABLE IF NOT EXISTS consumers (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Inserir o primeiro consumer (Fintech Startup) por padrão
+-- Inserir o LãoBank como consumer principal
 INSERT INTO consumers (name, schema_name, api_key, status, created_at)
-SELECT 'Fintech Startup', 'tenant_fintech', 'fintech-startup-key-12345', 'ACTIVE', CURRENT_TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM consumers WHERE schema_name = 'tenant_fintech');
+SELECT 'LãoBank Digital', 'public', 'laobank-digital-key-99999', 'ACTIVE', CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM consumers WHERE api_key = 'laobank-digital-key-99999');
+
+-- Tabela de Usuários (Correntistas e Colaboradores LãoBank)
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    cpf VARCHAR(255) NOT NULL UNIQUE,
+    income DOUBLE PRECISION NOT NULL,
+    age INTEGER NOT NULL,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    role VARCHAR(50) NOT NULL DEFAULT 'ROLE_CUSTOMER'
+);
+
+-- Seed de Contas Iniciais (Admin, Gerente e Cliente Correntista)
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Administrador Geral', 'admin@laobank.com.br', 'Admin@LaoBank2026!', '000.000.000-01', 30000.00, 38, -23.5505, -46.6333, 'ROLE_ADMIN'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@laobank.com.br');
+
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Carlos Bearzotti (Gerente)', 'gerente@laobank.com.br', 'Gerente@LaoBank2026!', '000.000.000-02', 18000.00, 32, -23.5505, -46.6333, 'ROLE_EMPLOYEE'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'gerente@laobank.com.br');
+
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Carlos Silva (Cliente)', 'carlos@exemplo.com', 'SenhaForte@2026!', '123.456.789-00', 7500.00, 29, -23.5505, -46.6333, 'ROLE_CUSTOMER'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'carlos@exemplo.com');
+
+-- Tabela de Transações com Criptografia
+CREATE TABLE IF NOT EXISTS transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    user_document VARCHAR(512),
+    credit_card_token VARCHAR(2048),
+    transaction_value BIGINT
+);
+
+-- Tabela de Pontos de Interesse (GPS / Agências e Caixas LãoBank)
+CREATE TABLE IF NOT EXISTS tb_pois (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL
+);
+
+-- Seeds de Caixas e Agências LãoBank
+INSERT INTO tb_pois (name, x, y)
+SELECT 'Agência Central LãoBank - Av. Paulista', 20, 10
+WHERE NOT EXISTS (SELECT 1 FROM tb_pois WHERE name = 'Agência Central LãoBank - Av. Paulista');
+
+INSERT INTO tb_pois (name, x, y)
+SELECT 'Caixa 24h LãoBank - Shopping Morumbi', 35, 15
+WHERE NOT EXISTS (SELECT 1 FROM tb_pois WHERE name = 'Caixa 24h LãoBank - Shopping Morumbi');
+
+INSERT INTO tb_pois (name, x, y)
+SELECT 'Agência Premium LãoBank - Faria Lima', 10, 8
+WHERE NOT EXISTS (SELECT 1 FROM tb_pois WHERE name = 'Agência Premium LãoBank - Faria Lima');
+
+-- Tabela de Encurtador de URLs
+CREATE TABLE IF NOT EXISTS tb_url_mappings (
+    id BIGSERIAL PRIMARY KEY,
+    short_code VARCHAR(10) NOT NULL UNIQUE,
+    original_url VARCHAR(2048) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    access_count BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_url_mapping_short_code ON tb_url_mappings (short_code);

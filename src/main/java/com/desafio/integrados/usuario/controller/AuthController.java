@@ -33,6 +33,13 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/employee-login")
+    @PublicEndpoint
+    public ResponseEntity<LoginResponse> employeeLogin(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = userService.employeeLogin(request);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getAuthenticatedUserProfile(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("authenticatedUserId");

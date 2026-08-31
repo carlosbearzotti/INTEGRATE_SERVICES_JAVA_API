@@ -8,12 +8,21 @@ CREATE TABLE IF NOT EXISTS users (
     income DOUBLE PRECISION NOT NULL,
     age INTEGER NOT NULL,
     latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION
+    longitude DOUBLE PRECISION,
+    role VARCHAR(50) NOT NULL DEFAULT 'ROLE_CUSTOMER'
 );
 
--- Seed de Usuário Demo Padrão
-INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude)
-SELECT 'Carlos Silva', 'carlos@exemplo.com', 'SenhaForte@2026!', '123.456.789-00', 7500.00, 29, -23.5505, -46.6333
+-- Seed de Contas Iniciais (Admin, Gerente e Cliente Correntista)
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Administrador Geral', 'admin@laobank.com.br', 'Admin@LaoBank2026!', '000.000.000-01', 30000.00, 38, -23.5505, -46.6333, 'ROLE_ADMIN'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@laobank.com.br');
+
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Carlos Bearzotti (Gerente)', 'gerente@laobank.com.br', 'Gerente@LaoBank2026!', '000.000.000-02', 18000.00, 32, -23.5505, -46.6333, 'ROLE_EMPLOYEE'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'gerente@laobank.com.br');
+
+INSERT INTO users (name, email, password, cpf, income, age, latitude, longitude, role)
+SELECT 'Carlos Silva (Cliente)', 'carlos@exemplo.com', 'SenhaForte@2026!', '123.456.789-00', 7500.00, 29, -23.5505, -46.6333, 'ROLE_CUSTOMER'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'carlos@exemplo.com');
 
 -- Tabela de Transações com Criptografia

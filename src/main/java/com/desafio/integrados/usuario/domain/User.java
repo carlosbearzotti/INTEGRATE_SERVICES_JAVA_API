@@ -39,10 +39,17 @@ public class User {
     @Column
     private Double longitude;
 
+    @Column(nullable = false)
+    private String role = "ROLE_CUSTOMER";
+
     public User() {
     }
 
     public User(String name, String email, String password, String cpf, Double income, Integer age, Double latitude, Double longitude) {
+        this(name, email, password, cpf, income, age, latitude, longitude, "ROLE_CUSTOMER");
+    }
+
+    public User(String name, String email, String password, String cpf, Double income, Integer age, Double latitude, Double longitude, String role) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -51,6 +58,7 @@ public class User {
         this.age = age;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.role = role != null ? role : "ROLE_CUSTOMER";
     }
 
     public Long getId() { return id; }
@@ -71,4 +79,6 @@ public class User {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

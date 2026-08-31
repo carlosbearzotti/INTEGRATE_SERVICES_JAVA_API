@@ -77,7 +77,32 @@ public class UserService {
                 token,
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
+        );
+    }
+
+    public LoginResponse employeeLogin(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("Credenciais corporativas inválidas."));
+
+        if (!user.getPassword().equals(request.getPassword())) {
+            throw new InvalidCredentialsException("Credenciais corporativas inválidas.");
+        }
+
+        // Validação de acesso restrito a colaboradores e administradores
+        if (!"ROLE_ADMIN".equals(user.getRole()) && !"ROLE_EMPLOYEE".equals(user.getRole())) {
+            throw new InvalidCredentialsException("Acesso negado: apenas colaboradores e administradores do LãoBank têm permissão de acesso ao Portal BackOffice.");
+        }
+
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(
+                token,
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
         );
     }
 
@@ -96,7 +121,8 @@ public class UserService {
                 user.getIncome(),
                 user.getAge(),
                 user.getLatitude(),
-                user.getLongitude()
+                user.getLongitude(),
+                user.getRole()
         );
     }
 
