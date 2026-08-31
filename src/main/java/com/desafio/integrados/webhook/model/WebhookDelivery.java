@@ -1,0 +1,58 @@
+package com.desafio.integrados.webhook.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "tb_webhook_deliveries")
+public class WebhookDelivery {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "webhook_id", nullable = false)
+    private Long webhookId;
+
+    @Column(name = "event_type", nullable = false, length = 100)
+    private String eventType;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String payload;
+
+    @Column(name = "status_code")
+    private Integer statusCode;
+
+    @Column(length = 255)
+    private String signature;
+
+    @Column(name = "response_body", columnDefinition = "TEXT")
+    private String responseBody;
+
+    @Column(nullable = false)
+    private Boolean success = false;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public WebhookDelivery() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getWebhookId() { return webhookId; }
+    public void setWebhookId(Long webhookId) { this.webhookId = webhookId; }
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
+    public String getPayload() { return payload; }
+    public void setPayload(String payload) { this.payload = payload; }
+    public Integer getStatusCode() { return statusCode; }
+    public void setStatusCode(Integer statusCode) { this.statusCode = statusCode; }
+    public String getSignature() { return signature; }
+    public void setSignature(String signature) { this.signature = signature; }
+    public String getResponseBody() { return responseBody; }
+    public void setResponseBody(String responseBody) { this.responseBody = responseBody; }
+    public Boolean getSuccess() { return success; }
+    public void setSuccess(Boolean success) { this.success = success; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+}

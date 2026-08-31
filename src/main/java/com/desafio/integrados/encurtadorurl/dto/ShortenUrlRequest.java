@@ -6,5 +6,6 @@ import org.hibernate.validator.constraints.URL;
 public record ShortenUrlRequest(
         @NotBlank(message = "A URL não pode estar vazia")
         @URL(message = "A URL informada possui formato inválido")
+        @com.fasterxml.jackson.annotation.JsonAlias({"originalUrl", "original_url"})
         String url
 ) {}

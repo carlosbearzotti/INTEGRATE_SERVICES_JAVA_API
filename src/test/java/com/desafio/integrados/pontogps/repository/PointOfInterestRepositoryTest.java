@@ -12,7 +12,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("null")
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 @DisplayName("Testes de Integração do Repositório PointOfInterestRepository")
 class PointOfInterestRepositoryTest {
 

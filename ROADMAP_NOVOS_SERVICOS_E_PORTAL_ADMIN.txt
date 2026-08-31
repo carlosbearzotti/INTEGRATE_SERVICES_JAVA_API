@@ -1,0 +1,125 @@
+================================================================================
+           INTEGRADOS FINTECH SUITE - ROADMAP DE EVOLUÇÃO & ARQUITETURA
+================================================================================
+
+Data de Criação: 31/08/2026
+Autor / Mantenedor: Carlos
+Repositórios:
+  - Backend Multi-Tenant: d:\REPOSITÓRIOS\DesafioBackend\Integrados (Spring Boot 3 / Java 21)
+  - Consumer B2C: d:\REPOSITÓRIOS\DesafioBackend\consumerLãoBank (Digital Banking)
+  - Referência Visual: d:\REPOSITÓRIOS\cortex (Next.js 16 / Tailwind 4 / Shadcn)
+
+================================================================================
+1. PROPOSTA DE NOVO CONSUMER: PORTAL ADMINISTRATIVO B2B / BACKOFFICE
+================================================================================
+
+Nome Sugerido: Integrados Partner Hub / Admin Console
+Público-Alvo: Gestores corporativos, instituições financeiras parceiras e integradores B2B.
+Objetivo: Demonstrar visualmente o poder do isolamento Multi-Tenant via esquemas de banco de dados
+e fornecer dashboards analíticos em tempo real.
+
+Stack Recomendada:
+  - Framework: Next.js 16 (App Router) + React 19 + TypeScript
+  - Estilização: Tailwind CSS 4 + Shadcn UI (Baseado no design do repositório Cortex)
+  - Gráficos: Recharts / Lucide Icons
+  - Gerenciamento de Estado: Stores reativas com Pub/Sub (padrão Cortex lib/*-store.ts)
+
+Módulos do Portal B2B:
+  1.1. Seletor Dinâmico de Tenants
+       - Permite ao admin alternar entre 'tenant_fintech', 'tenant_corporativo' e novos clientes.
+       - Injeção automática do cabeçalho 'X-API-Key' correspondente a cada tenant.
+
+  1.2. Dashboard Analítico do Cofre Criptográfico
+       - Gráficos de volume financeiro transacionado por período (Dia, Semana, Mês).
+       - Métricas de segurança: Total de transações criptografadas com AES-256 e tokens RSA-2048.
+
+  1.3. Gestor de Agências & Caixas 24h (Radar POI)
+       - Mapa interativo com visualização espacial de pontos de atendimento cadastrados.
+       - Simulador de calor (heatmap) para cobertura geográfica de agências.
+       - Ferramenta de cadastro e edição de POIs com validação euclidiana.
+
+  1.4. Central de Campanhas & Encurtador de Links
+       - Rastreamento em tempo real de cliques em links de cobrança e boletos.
+       - Acompanhamento da Campanha de Indicação CDB (Meta de 15 convites).
+       - Taxa de conversão e gráficos de cliques por origem (WhatsApp, SMS, E-mail).
+
+  1.5. Simulador de Empréstimos Corporativo & Motor de Risco
+       - Consulta de simulações realizadas por clientes finais.
+       - Visualização de taxas aprovadas por modalidade (Pessoal, Garantia, Consignado).
+
+  1.6. Gestão de API Keys & Governança
+       - Criação, rotação e revogação de chaves 'X-API-Key'.
+       - Configuração de limites de requisições (Rate Limiting) e quotas por empresa.
+
+
+================================================================================
+2. NOVOS SERVIÇOS & MICROSSERVIÇOS PARA A API (SPRING BOOT)
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1. MOTOR ANTIFRAUDE COM GEOFENCING (Fraud Shield)
+--------------------------------------------------------------------------------
+Descrição: Conecta a camada de transações financeiras com o módulo espacial de POIs/Geolocalização.
+Funcionamento:
+  - Ao processar uma transação (POST /api/transactions), a API calcula a distância euclidiana
+    entre as coordenadas cadastradas do usuário (ou última localização conhecida) e o local da transação.
+  - Se a distância for incoerente (ex: > 500 km em menos de 10 minutos), a transação é marcada
+    como status 'UNDER_REVIEW' e gera alerta de suspeita de fraude.
+Novos Endpoints:
+  - GET  /api/fraud/alerts           -> Lista transações sob suspeita de fraude
+  - POST /api/fraud/review/{txId}    -> Aprova ou bloqueia transação retida
+  - PUT  /api/fraud/rules            -> Ajusta parâmetros de tolerância de distância/tempo
+
+--------------------------------------------------------------------------------
+2.2. SIMULADOR DE INVESTIMENTOS & RENDA FIXA (/api/investments)
+--------------------------------------------------------------------------------
+Descrição: Conecta-se diretamente com a Campanha de Indicação CDB do encurtador de links.
+Funcionamento:
+  - Motor de cálculo de rendimento líquido com tabela regressiva de IR (22.5% a 15%).
+  - Suporte a múltiplos indexadores: CDB 100% CDI, CDB Turbinado 120% CDI, LCI/LCA (isento de IR)
+    e Tesouro Prefixado.
+Novos Endpoints:
+  - POST /api/investments/simulate   -> Simula valor futuro com aportes mensais e taxa CDI
+  - POST /api/investments/apply      -> Aplica saldo da conta no investimento selecionado
+  - GET  /api/investments/my-funds   -> Extrato de posição consolidada de investimentos
+
+--------------------------------------------------------------------------------
+2.3. GATEWAY DE WEBHOOKS & EVENTOS ASSÍNCRONOS (/api/webhooks)
+--------------------------------------------------------------------------------
+Descrição: Permite que parceiros B2B recebam notificações HTTP POST em tempo real sobre eventos.
+Padrão de Segurança:
+  - Assinatura criptográfica enviada no cabeçalho 'X-Signature: sha256=HMAC(...)'.
+  - Fila de retentativa automática (Retry Policy com Backoff Exponencial).
+Eventos Suportados:
+  - transaction.completed            -> Notifica quando uma transferência protegida é liquidada
+  - loan.contracted                  -> Notifica formalização de contrato de crédito
+  - url.milestone_reached            -> Notifica quando link de indicação atinge meta de cliques
+Novos Endpoints:
+  - POST /api/webhooks/subscriptions -> Cadastra nova URL de callback e eventos desejados
+  - GET  /api/webhooks/deliveries    -> Histórico de entregas e status HTTP das notificações
+
+--------------------------------------------------------------------------------
+2.4. PIX AGENDADO & PAGAMENTOS RECORRENTES COM @Scheduled
+--------------------------------------------------------------------------------
+Descrição: Automação de débitos e transferências futuras agendadas.
+Funcionamento:
+  - Usuário agenda pagamentos informando data futura (YYYY-MM-DD).
+  - Tarefa em background (@Scheduled cron no Spring Boot) executa a cada hora processando
+    as transferências com data de vencimento igual ao dia atual.
+Novos Endpoints:
+  - POST /api/transfers/schedule     -> Agenda transferência Pix ou pagamento de boleto
+  - GET  /api/transfers/scheduled    -> Lista agendamentos pendentes do usuário
+  - DELETE /api/transfers/schedule/{id} -> Cancela agendamento futuro
+
+--------------------------------------------------------------------------------
+2.5. MÓDULO DE COMPLIANCE & PRIVACIDADE LGPD (/api/compliance)
+--------------------------------------------------------------------------------
+Descrição: Atendimento integral aos direitos dos titulares de dados conforme LGPD/GDPR.
+Novos Endpoints:
+  - GET  /api/compliance/export-data -> Gera pacote JSON/PDF assinado com todos os dados e histórico
+  - POST /api/compliance/anonymize   -> Anonimiza CPF, e-mail e dados pessoais (Direito ao Esquecimento)
+  - GET  /api/compliance/audit-logs  -> Trilha de auditoria imutável de acessos e modificações
+
+================================================================================
+FIM DO DOCUMENTO
+================================================================================
