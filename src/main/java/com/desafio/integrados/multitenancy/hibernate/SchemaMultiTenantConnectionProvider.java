@@ -33,15 +33,22 @@ public class SchemaMultiTenantConnectionProvider implements MultiTenantConnectio
     @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection connection = getAnyConnection();
-        ensureSchemaExists(connection, tenantIdentifier);
-        connection.setSchema(tenantIdentifier);
+        String schema = (tenantIdentifier != null && !tenantIdentifier.isBlank()) ? tenantIdentifier : "public";
+        ensureSchemaExists(connection, schema);
+        try {
+            connection.setSchema(schema);
+        } catch (Exception e) {
+            try {
+                connection.setSchema("public");
+            } catch (Exception ignored) {}
+        }
         return connection;
     }
 
     private void ensureSchemaExists(Connection connection, String schemaName) {
-        if (!"public".equalsIgnoreCase(schemaName) && verifiedSchemas.add(schemaName)) {
+        if (!"public".equalsIgnoreCase(schemaName) && verifiedSchemas.add(schemaName.toLowerCase())) {
             try (Statement st = connection.createStatement()) {
-                st.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
+                st.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
             } catch (SQLException ignored) {
             }
         }
