@@ -1,9 +1,0 @@
-2026-08-31 15:22:25.135821-03:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CONSUMERS" not found; SQL statement:
-SELECT schema_name FROM public.consumers WHERE status = 'ACTIVE' [42102-232]
-2026-08-31 15:48:30.760206-03:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CONSUMERS" not found; SQL statement:
-SELECT schema_name FROM public.consumers WHERE status = 'ACTIVE' [42102-232]
-2026-08-31 18:13:13.925815-03:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CONSUMERS" not found; SQL statement:
-SELECT schema_name FROM public.consumers WHERE status = 'ACTIVE' [42102-232]
