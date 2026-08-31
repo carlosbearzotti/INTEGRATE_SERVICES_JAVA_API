@@ -10,7 +10,6 @@ import com.desafio.integrados.usuario.domain.User;
 import com.desafio.integrados.usuario.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
