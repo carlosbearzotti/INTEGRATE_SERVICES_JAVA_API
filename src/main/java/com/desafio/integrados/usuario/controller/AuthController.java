@@ -1,11 +1,7 @@
 package com.desafio.integrados.usuario.controller;
 
 import com.desafio.integrados.autenticacao.annotation.PublicEndpoint;
-import com.desafio.integrados.usuario.dto.LoginRequest;
-import com.desafio.integrados.usuario.dto.LoginResponse;
-import com.desafio.integrados.usuario.dto.UserProfileResponse;
-import com.desafio.integrados.usuario.dto.UserRegistrationRequest;
-import com.desafio.integrados.usuario.dto.UserRegistrationResponse;
+import com.desafio.integrados.usuario.dto.*;
 import com.desafio.integrados.usuario.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -45,5 +41,19 @@ public class AuthController {
         }
         UserProfileResponse profile = userService.getProfile(userId);
         return ResponseEntity.ok(profile);
+    }
+
+    @PostMapping("/forgot-password")
+    @PublicEndpoint
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        ForgotPasswordResponse response = userService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    @PublicEndpoint
+    public ResponseEntity<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        ResetPasswordResponse response = userService.resetPassword(request);
+        return ResponseEntity.ok(response);
     }
 }

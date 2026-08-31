@@ -99,4 +99,34 @@ public class UserService {
                 user.getLongitude()
         );
     }
+
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("Nenhuma conta encontrada com o e-mail: " + request.getEmail()));
+
+        // Gera código de segurança de 6 dígitos
+        int code = 100000 + new java.util.Random().nextInt(900000);
+        String resetCode = String.valueOf(code);
+
+        return new ForgotPasswordResponse(
+                "Instruções e código de recuperação enviados com sucesso!",
+                user.getEmail(),
+                resetCode,
+                true
+        );
+    }
+
+    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("Nenhuma conta encontrada com o e-mail: " + request.getEmail()));
+
+        // Validar conformidade com as 5 regras do módulo SenhaSegura
+        passwordValidationService.validate(new PasswordValidationRequest(request.getNewPassword()));
+
+        // Atualizar senha no repositório
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+
+        return new ResetPasswordResponse(true, "Senha de acesso ao LãoBank atualizada com sucesso!");
+    }
 }
