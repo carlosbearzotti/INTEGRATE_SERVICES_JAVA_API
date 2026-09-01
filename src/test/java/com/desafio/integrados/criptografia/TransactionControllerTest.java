@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 @SuppressWarnings("null")
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,10 +31,12 @@ class TransactionControllerTest {
 
     @Test
     @DisplayName("POST /api/transactions - Deve criar transação criptografada e retornar dados legíveis")
+    @WithMockUser(username = "teste@exemplo.com")
     void shouldCreateTransaction() throws Exception {
         TransactionDTO request = new TransactionDTO(null, "12345678900", "4111111111111111", 5000L);
 
         mockMvc.perform(post("/api/transactions")
+                        .requestAttr("authenticatedUserId", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

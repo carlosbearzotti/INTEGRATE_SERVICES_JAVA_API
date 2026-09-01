@@ -58,4 +58,19 @@ public class CustomerLoanController {
         CustomerLoanResponse response = loanService.determineLoans(loanRequest);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/api/loans")
+    public ResponseEntity<com.desafio.integrados.emprestimo.dto.ContractLoanResponse> contractLoan(
+            @Valid @RequestBody com.desafio.integrados.emprestimo.dto.ContractLoanRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.desafio.integrados.autenticacao.security.CustomUserDetails userDetails) {
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(loanService.contractLoan(userDetails.getId(), request));
+    }
+
+    @GetMapping("/api/loans/contracts")
+    public ResponseEntity<java.util.List<com.desafio.integrados.emprestimo.dto.ContractLoanResponse>> getMyContracts(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.desafio.integrados.autenticacao.security.CustomUserDetails userDetails) {
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(loanService.getMyContracts(userDetails.getId()));
+    }
 }

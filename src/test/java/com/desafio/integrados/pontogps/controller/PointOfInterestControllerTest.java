@@ -44,6 +44,12 @@ class PointOfInterestControllerTest {
     @MockitoBean
     private PointOfInterestService service;
 
+    @MockitoBean
+    private com.desafio.integrados.autenticacao.service.JwtService jwtService;
+
+    @MockitoBean
+    private com.desafio.integrados.autenticacao.security.CustomUserDetailsService customUserDetailsService;
+
     @Test
     @DisplayName("POST /pois - Deve criar POI com sucesso e retornar HTTP 201 Created")
     void shouldCreatePoiSuccessfully() throws Exception {

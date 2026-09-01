@@ -30,6 +30,12 @@ class UrlShortenerControllerTest {
     @MockitoBean
     private UrlShortenerService urlShortenerService;
 
+    @MockitoBean
+    private com.desafio.integrados.autenticacao.service.JwtService jwtService;
+
+    @MockitoBean
+    private com.desafio.integrados.autenticacao.security.CustomUserDetailsService customUserDetailsService;
+
     @Test
     @DisplayName("POST /shorten-url - Deve retornar 200 OK com a URL encurtada quando o payload for válido")
     void shouldReturn200AndShortenedUrlWhenRequestIsValid() throws Exception {

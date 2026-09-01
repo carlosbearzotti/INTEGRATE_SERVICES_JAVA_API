@@ -1,39 +1,18 @@
 package com.desafio.integrados.autenticacao.config;
 
-import com.desafio.integrados.autenticacao.interceptor.AuthenticationInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    private final AuthenticationInterceptor authenticationInterceptor;
-
-    public WebMvcConfig(@Autowired(required = false) AuthenticationInterceptor authenticationInterceptor) {
-        this.authenticationInterceptor = authenticationInterceptor;
-    }
-
-    @Override
-    public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        if (authenticationInterceptor != null) {
-            registry.addInterceptor(authenticationInterceptor)
-                    .addPathPatterns(
-                            "/foo-bar",
-                            "/api/recursos/**",
-                            "/api/auth/me",
-                            "/api/loans/me",
-                            "/api/transactions/**"
-                    )
-                    .excludePathPatterns("/error");
-        }
-    }
-
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
+        // Cors is already configured in SecurityConfig, but we can leave this or let SecurityConfig handle it.
+        // We'll let SecurityConfig handle it entirely, so we could technically remove this method if we wanted, 
+        // but let's keep it minimal if it exists.
         registry.addMapping("/**")
                 .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
@@ -42,4 +21,3 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .maxAge(3600);
     }
 }
-
