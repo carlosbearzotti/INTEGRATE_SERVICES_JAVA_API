@@ -37,6 +37,17 @@ public class TransactionController {
         return ResponseEntity.ok(service.create(dto));
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<java.util.Map<String, Object>> getStats() {
+        long count = service.findAll().size();
+        return ResponseEntity.ok(java.util.Map.of(
+                "status", "UP",
+                "service", "LaoBank Core API",
+                "totalTransactions", count,
+                "timestamp", System.currentTimeMillis()
+        ));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDTO> findById(@PathVariable @NonNull Long id) {
         TransactionDTO result = service.findById(Objects.requireNonNull(id));

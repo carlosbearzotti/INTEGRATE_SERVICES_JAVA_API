@@ -40,3 +40,9 @@ data/
 *.trace.db
 HashGenerator.java
 
+### Runtime & Logs ###
+.logs/
+*.log
+.mvn/wrapper/maven-3.*
+
+

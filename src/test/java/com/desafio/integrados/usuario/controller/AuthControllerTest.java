@@ -112,6 +112,12 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(registerReq)))
                 .andExpect(status().isCreated());
 
+        // Ativa a conta (como se o código de e-mail tivesse sido confirmado)
+        userRepository.findByEmail("ana@exemplo.com").ifPresent(u -> {
+            u.setEmailVerified(true);
+            userRepository.save(u);
+        });
+
         // Realiza o login
         LoginRequest loginReq = new LoginRequest("ana@exemplo.com", "Segura@2026!");
 
@@ -135,6 +141,36 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.name", is("Ana Souza")))
                 .andExpect(jsonPath("$.email", is("ana@exemplo.com")))
                 .andExpect(jsonPath("$.cpf", is("987.654.321-11")));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - Deve bloquear login quando conta estiver pendente de ativação de e-mail")
+    void shouldBlockLoginWhenAccountNotVerified() throws Exception {
+        UserRegistrationRequest registerReq = new UserRegistrationRequest(
+                "Carlos Pendente",
+                "carlos.pendente@exemplo.com",
+                "Segura@2026!",
+                "123.456.789-00",
+                5000.0,
+                30,
+                -23.5505,
+                -46.6333
+        );
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerReq)))
+                .andExpect(status().isCreated());
+
+        // Tentativa de login sem confirmar o código
+        LoginRequest loginReq = new LoginRequest("carlos.pendente@exemplo.com", "Segura@2026!");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReq)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status", is(403)))
+                .andExpect(jsonPath("$.unverified", is(true)));
     }
 
     @Test

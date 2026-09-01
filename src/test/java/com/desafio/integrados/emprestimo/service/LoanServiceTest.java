@@ -15,18 +15,23 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class LoanServiceTest {
 
     private LoanService loanService;
+    private com.desafio.integrados.usuario.repository.UserRepository userRepository;
+    private com.desafio.integrados.emprestimo.repository.LoanContractRepository loanContractRepository;
 
     @BeforeEach
     void setUp() {
+        userRepository = mock(com.desafio.integrados.usuario.repository.UserRepository.class);
+        loanContractRepository = mock(com.desafio.integrados.emprestimo.repository.LoanContractRepository.class);
         loanService = new LoanServiceImpl(List.of(
                 new PersonalLoanStrategy(),
                 new GuaranteedLoanStrategy(),
                 new ConsignmentLoanStrategy()
-        ));
+        ), userRepository, loanContractRepository);
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.desafio.integrados.senhasegura.dto.PasswordValidationRequest;
 import com.desafio.integrados.senhasegura.service.PasswordValidationService;
 import com.desafio.integrados.usuario.domain.User;
 import com.desafio.integrados.usuario.dto.*;
+import com.desafio.integrados.usuario.exception.AccountNotVerifiedException;
 import com.desafio.integrados.usuario.exception.InvalidCredentialsException;
 import com.desafio.integrados.usuario.exception.UserAlreadyExistsException;
 import com.desafio.integrados.usuario.exception.UserNotFoundException;
@@ -35,17 +36,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     // Cache em memória para tokens temporários de recuperação (Validade: 15 minutos)
-    private final Map<String, ResetTokenEntry> resetTokens = new ConcurrentHashMap<>();
+    private final Map<String, TokenEntry> resetTokens = new ConcurrentHashMap<>();
+
+    // Cache em memória para tokens temporários de ativação de conta (Validade: 15 minutos)
+    private final Map<String, ActivationEntry> activationTokens = new ConcurrentHashMap<>();
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(3))
             .build();
 
-    private static class ResetTokenEntry {
+    private static class TokenEntry {
         private final String code;
         private final long expiresAt;
 
-        public ResetTokenEntry(String code, long expiresAt) {
+        public TokenEntry(String code, long expiresAt) {
             this.code = code;
             this.expiresAt = expiresAt;
         }
@@ -55,6 +59,29 @@ public class UserService {
                 return false;
             }
             return System.currentTimeMillis() <= this.expiresAt;
+        }
+    }
+
+    private static class ActivationEntry {
+        private final String code;
+        private final long expiresAt;
+        private final String cardPin;
+
+        public ActivationEntry(String code, long expiresAt, String cardPin) {
+            this.code = code;
+            this.expiresAt = expiresAt;
+            this.cardPin = cardPin;
+        }
+
+        public boolean isValid(String providedCode) {
+            if (providedCode == null || !this.code.trim().equalsIgnoreCase(providedCode.trim())) {
+                return false;
+            }
+            return System.currentTimeMillis() <= this.expiresAt;
+        }
+
+        public String getCardPin() {
+            return cardPin;
         }
     }
 
@@ -80,6 +107,7 @@ public class UserService {
             throw new UserAlreadyExistsException("Já existe um usuário cadastrado com este CPF.");
         }
 
+        // Cria o usuário com status emailVerified = false (pendente de ativação)
         User user = new User(
                 request.getName(),
                 request.getEmail(),
@@ -88,16 +116,29 @@ public class UserService {
                 request.getIncome(),
                 request.getAge(),
                 request.getLatitude(),
-                request.getLongitude()
+                request.getLongitude(),
+                "ROLE_CUSTOMER",
+                false // Obrigatório confirmar por e-mail
         );
 
         User saved = userRepository.save(user);
 
-        // Despacha e-mail de boas-vindas com emissão de cartão físico (7 dias), virtual disponível e senha provisória oficial
+        // Gera código de ativação de 6 dígitos único
+        int code = 100000 + new Random().nextInt(900000);
+        String activationCode = String.valueOf(code);
+        long expiresAt = System.currentTimeMillis() + (15 * 60 * 1000);
+
         String cardPin = (request.getCardPin() != null && !request.getCardPin().isBlank())
                 ? request.getCardPin().trim()
                 : String.format("%04d", (int)(Math.random() * 9000) + 1000);
-        dispatchCardIssuedNotification(saved.getEmail(), saved.getName(), cardPin);
+
+        String emailKey = saved.getEmail().toLowerCase().trim();
+        activationTokens.put(emailKey, new ActivationEntry(activationCode, expiresAt, cardPin));
+
+        log.info("Código de ativação gerado para {}: {}", emailKey, activationCode);
+
+        // Despacha e-mail de ativação obrigatório para o consumerNotification (Porta 3002)
+        dispatchAccountActivationNotification(saved.getEmail(), saved.getName(), activationCode);
 
         return new UserRegistrationResponse(
                 saved.getId(),
@@ -108,7 +149,73 @@ public class UserService {
                 saved.getAge(),
                 saved.getLatitude(),
                 saved.getLongitude(),
+                cardPin,
+                "PENDING_ACTIVATION",
+                "Conta criada com sucesso! Digite o código de 6 dígitos enviado para seu e-mail no Notify Hub para liberar seu acesso."
+        );
+    }
+
+    public VerifyAccountResponse verifyAccount(VerifyAccountRequest request) {
+        String emailKey = request.getEmail().toLowerCase().trim();
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("Nenhuma conta encontrada com o e-mail: " + request.getEmail()));
+
+        if (user.isEmailVerified()) {
+            return new VerifyAccountResponse(true, "Sua conta já se encontra ativada!", user.getEmail(), null);
+        }
+
+        ActivationEntry entry = activationTokens.get(emailKey);
+        if (entry == null || !entry.isValid(request.getCode())) {
+            log.warn("Tentativa de ativação de conta com código inválido para {}", emailKey);
+            throw new InvalidCredentialsException("Código de ativação inválido ou expirado. Verifique seu e-mail no Notify Hub.");
+        }
+
+        // Ativa a conta
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        String cardPin = entry.getCardPin();
+        activationTokens.remove(emailKey);
+
+        log.info("Conta ativada com sucesso para {}", emailKey);
+
+        // Agora que o e-mail foi validado, emite o cartão e envia o e-mail de boas-vindas
+        dispatchCardIssuedNotification(user.getEmail(), user.getName());
+
+        return new VerifyAccountResponse(
+                true,
+                "Conta ativada com sucesso! Seu acesso ao LãoBank está liberado.",
+                user.getEmail(),
                 cardPin
+        );
+    }
+
+    public VerifyAccountResponse resendActivationCode(String email) {
+        String emailKey = email.toLowerCase().trim();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Nenhuma conta encontrada com o e-mail: " + email));
+
+        if (user.isEmailVerified()) {
+            return new VerifyAccountResponse(true, "Sua conta já está ativada. Você pode fazer login normalmente.", user.getEmail(), null);
+        }
+
+        int code = 100000 + new Random().nextInt(900000);
+        String activationCode = String.valueOf(code);
+        long expiresAt = System.currentTimeMillis() + (15 * 60 * 1000);
+
+        ActivationEntry currentEntry = activationTokens.get(emailKey);
+        String cardPin = currentEntry != null ? currentEntry.getCardPin() : String.format("%04d", (int)(Math.random() * 9000) + 1000);
+
+        activationTokens.put(emailKey, new ActivationEntry(activationCode, expiresAt, cardPin));
+
+        log.info("Novo código de ativação reenviado para {}: {}", emailKey, activationCode);
+        dispatchAccountActivationNotification(user.getEmail(), user.getName(), activationCode);
+
+        return new VerifyAccountResponse(
+                false,
+                "Novo código de 6 dígitos enviado para seu e-mail! Verifique sua caixa de entrada no Notify Hub (Porta 3002).",
+                user.getEmail(),
+                null
         );
     }
 
@@ -118,6 +225,13 @@ public class UserService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("E-mail ou senha inválidos.");
+        }
+
+        // Bloqueia acesso caso a conta não tenha sido ativada via código de e-mail (exceto admin)
+        if (!user.isEmailVerified() && !"ROLE_ADMIN".equalsIgnoreCase(user.getRole())) {
+            // Reenvia automaticamente o código de ativação para conveniência
+            resendActivationCode(user.getEmail());
+            throw new AccountNotVerifiedException("Sua conta ainda não foi ativada. Enviamos um novo código de verificação para seu e-mail no Notify Hub.");
         }
 
         String token = jwtService.generateToken(user);
@@ -133,15 +247,14 @@ public class UserService {
 
     public LoginResponse employeeLogin(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("Credenciais corporativas inválidas."));
+                .orElseThrow(() -> new InvalidCredentialsException("Credenciais de colaborador inválidas."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Credenciais corporativas inválidas.");
+            throw new InvalidCredentialsException("Credenciais de colaborador inválidas.");
         }
 
-        // Validação de acesso restrito a colaboradores e administradores
-        if (!"ROLE_ADMIN".equals(user.getRole()) && !"ROLE_EMPLOYEE".equals(user.getRole())) {
-            throw new InvalidCredentialsException("Acesso negado: apenas colaboradores e administradores do LãoBank têm permissão de acesso ao Portal BackOffice.");
+        if (!"ROLE_ADMIN".equalsIgnoreCase(user.getRole()) && !"ROLE_EMPLOYEE".equalsIgnoreCase(user.getRole())) {
+            throw new InvalidCredentialsException("Acesso restrito apenas a colaboradores e administradores.");
         }
 
         String token = jwtService.generateToken(user);
@@ -155,13 +268,10 @@ public class UserService {
         );
     }
 
-    public User findById(@org.springframework.lang.NonNull Long id) {
-        return userRepository.findById(java.util.Objects.requireNonNull(id))
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com id: " + id));
-    }
+    public UserProfileResponse getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com o ID: " + userId));
 
-    public UserProfileResponse getProfile(@org.springframework.lang.NonNull Long userId) {
-        User user = findById(java.util.Objects.requireNonNull(userId));
         return new UserProfileResponse(
                 user.getId(),
                 user.getName(),
@@ -186,7 +296,7 @@ public class UserService {
         // Salva no cache com expiração em 15 minutos
         long expiresAt = System.currentTimeMillis() + (15 * 60 * 1000);
         String emailKey = user.getEmail().toLowerCase().trim();
-        resetTokens.put(emailKey, new ResetTokenEntry(resetCode, expiresAt));
+        resetTokens.put(emailKey, new TokenEntry(resetCode, expiresAt));
 
         log.info("Token de recuperação gerado para {}: {}", emailKey, resetCode);
 
@@ -207,7 +317,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Nenhuma conta encontrada com o e-mail: " + request.getEmail()));
 
         // Validação estrita do código de recuperação
-        ResetTokenEntry entry = resetTokens.get(emailKey);
+        TokenEntry entry = resetTokens.get(emailKey);
         if (entry == null || !entry.isValid(request.getResetCode())) {
             log.warn("Tentativa de redefinição de senha com código inválido para {}", emailKey);
             throw new InvalidCredentialsException("Código de recuperação inválido ou expirado. Verifique seu e-mail no Notify Hub.");
@@ -225,6 +335,31 @@ public class UserService {
         log.info("Senha redefinida com sucesso para {}", emailKey);
 
         return new ResetPasswordResponse(true, "Senha de acesso ao LãoBank atualizada com sucesso!");
+    }
+
+    private void dispatchAccountActivationNotification(String email, String name, String activationCode) {
+        try {
+            String jsonPayload = String.format(
+                    "{\"to\":\"%s\",\"token\":\"%s\",\"template\":\"account_activation\",\"name\":\"%s\",\"subject\":\"🔒 Confirmação de Abertura de Conta LãoBank - Código: %s\"}",
+                    email, activationCode, name != null ? name : "Cliente LãoBank", activationCode
+            );
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:3002/api/notify"))
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(3))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
+                    .build();
+
+            httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
+                    .thenAccept(res -> log.info("Notificação de ativação de conta enviada ao consumerNotification (3002): Status {}", res.statusCode()))
+                    .exceptionally(ex -> {
+                        log.warn("consumerNotification (Porta 3002) indisponível para ativação de conta: {}", ex.getMessage());
+                        return null;
+                    });
+        } catch (Exception e) {
+            log.warn("Falha ao preparar requisição de ativação de conta: {}", e.getMessage());
+        }
     }
 
     private void dispatchNotification(String email, String name, String resetCode) {
@@ -252,11 +387,11 @@ public class UserService {
         }
     }
 
-    private void dispatchCardIssuedNotification(String email, String name, String cardPin) {
+    private void dispatchCardIssuedNotification(String email, String name) {
         try {
             String jsonPayload = String.format(
-                    "{\"to\":\"%s\",\"name\":\"%s\",\"template\":\"card_issued\",\"last4\":\"8824\",\"deliveryDays\":7,\"pin\":\"%s\",\"subject\":\"💳 Seu Cartão LãoBank foi emitido! Físico em até 7 dias, Virtual liberado e Senha Inicial\"}",
-                    email, name != null ? name : "Cliente LãoBank", cardPin
+                    "{\"to\":\"%s\",\"name\":\"%s\",\"template\":\"card_issued\",\"last4\":\"8824\",\"deliveryDays\":7,\"subject\":\"💳 Seu Cartão LãoBank foi emitido! Físico em até 7 dias e Virtual liberado\"}",
+                    email, name != null ? name : "Cliente LãoBank"
             );
 
             HttpRequest httpRequest = HttpRequest.newBuilder()

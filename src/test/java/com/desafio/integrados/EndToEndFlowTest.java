@@ -73,6 +73,12 @@ class EndToEndFlowTest {
                 .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.email", is("beatriz.fintech@exemplo.com")));
 
+        // Simula confirmação do código de e-mail (ativação)
+        userRepository.findByEmail("beatriz.fintech@exemplo.com").ifPresent(u -> {
+            u.setEmailVerified(true);
+            userRepository.save(u);
+        });
+
         // =========================================================================
         // 2. LOGIN & AUTENTICAÇÃO (Módulo Autenticação / JWT)
         // O usuário faz login e recebe o Token JWT para autorizar as próximas operações.

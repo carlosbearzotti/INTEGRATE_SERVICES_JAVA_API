@@ -26,6 +26,20 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/verify-account")
+    @PublicEndpoint
+    public ResponseEntity<VerifyAccountResponse> verifyAccount(@Valid @RequestBody VerifyAccountRequest request) {
+        VerifyAccountResponse response = userService.verifyAccount(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/resend-code")
+    @PublicEndpoint
+    public ResponseEntity<VerifyAccountResponse> resendCode(@Valid @RequestBody ResendCodeRequest request) {
+        VerifyAccountResponse response = userService.resendActivationCode(request.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     @PublicEndpoint
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
