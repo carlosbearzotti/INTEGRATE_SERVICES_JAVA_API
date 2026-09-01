@@ -10,11 +10,12 @@ public class UserRegistrationResponse {
     private Integer age;
     private Double latitude;
     private Double longitude;
+    private String cardPin;
 
     public UserRegistrationResponse() {
     }
 
-    public UserRegistrationResponse(Long id, String name, String email, String cpf, Double income, Integer age, Double latitude, Double longitude) {
+    public UserRegistrationResponse(Long id, String name, String email, String cpf, Double income, Integer age, Double latitude, Double longitude, String cardPin) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -23,6 +24,7 @@ public class UserRegistrationResponse {
         this.age = age;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.cardPin = cardPin;
     }
 
     public Long getId() { return id; }
@@ -41,4 +43,6 @@ public class UserRegistrationResponse {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getCardPin() { return cardPin; }
+    public void setCardPin(String cardPin) { this.cardPin = cardPin; }
 }

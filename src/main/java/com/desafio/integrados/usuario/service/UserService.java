@@ -93,8 +93,10 @@ public class UserService {
 
         User saved = userRepository.save(user);
 
-        // Despacha e-mail de boas-vindas com emissão de cartão físico (7 dias), virtual disponível e senha provisória
-        String cardPin = String.format("%04d", (int)(Math.random() * 9000) + 1000);
+        // Despacha e-mail de boas-vindas com emissão de cartão físico (7 dias), virtual disponível e senha provisória oficial
+        String cardPin = (request.getCardPin() != null && !request.getCardPin().isBlank())
+                ? request.getCardPin().trim()
+                : String.format("%04d", (int)(Math.random() * 9000) + 1000);
         dispatchCardIssuedNotification(saved.getEmail(), saved.getName(), cardPin);
 
         return new UserRegistrationResponse(
@@ -105,7 +107,8 @@ public class UserService {
                 saved.getIncome(),
                 saved.getAge(),
                 saved.getLatitude(),
-                saved.getLongitude()
+                saved.getLongitude(),
+                cardPin
         );
     }
 

@@ -30,6 +30,7 @@ public class UserRegistrationRequest {
 
     private Double latitude;
     private Double longitude;
+    private String cardPin;
 
     public UserRegistrationRequest() {
     }
@@ -61,4 +62,6 @@ public class UserRegistrationRequest {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getCardPin() { return cardPin; }
+    public void setCardPin(String cardPin) { this.cardPin = cardPin; }
 }
