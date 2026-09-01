@@ -112,9 +112,26 @@ O backend **`Integrados`** centraliza as regras de negócio, persistência, crip
 
 ## 🏃 Como Executar
 
-### Pré-requisitos
+### Orquestração Completa do Ecossistema (Linux / macOS / Windows)
+
+Você pode iniciar ou parar todos os 4 serviços (Core API 8080, LaoBank 3000, BackOffice 3001 e Notification Hub 3002) com um único comando:
+
+```bash
+# === No Linux / macOS ===
+./start-all.sh      # Inicia todos os 4 serviços em segundo plano
+./status-all.sh     # Verifica o status e portas de cada serviço
+./stop-all.sh       # Encerra todos os serviços de forma limpa
+
+# === No Windows (PowerShell) ===
+.\start-all.ps1
+.\stop-all.ps1
+```
+
+### Execução Individual da Core API
+
+#### Pré-requisitos
 - **Java 17+**
-- **Maven 3.8+** (ou utilizar o wrapper `./mvnw`)
+- **Maven 3.8+** (ou utilizar o wrapper `./mvnw` / `mvnw.cmd`)
 
 ```bash
 # Compilar e rodar a API Central

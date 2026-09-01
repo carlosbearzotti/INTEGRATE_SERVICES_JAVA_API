@@ -42,6 +42,9 @@ public class User {
     @Column(nullable = false)
     private String role = "ROLE_CUSTOMER";
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
     public User() {
     }
 
@@ -50,6 +53,10 @@ public class User {
     }
 
     public User(String name, String email, String password, String cpf, Double income, Integer age, Double latitude, Double longitude, String role) {
+        this(name, email, password, cpf, income, age, latitude, longitude, role, "ROLE_ADMIN".equalsIgnoreCase(role));
+    }
+
+    public User(String name, String email, String password, String cpf, Double income, Integer age, Double latitude, Double longitude, String role, boolean emailVerified) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -59,6 +66,7 @@ public class User {
         this.latitude = latitude;
         this.longitude = longitude;
         this.role = role != null ? role : "ROLE_CUSTOMER";
+        this.emailVerified = emailVerified;
     }
 
     public Long getId() { return id; }
@@ -81,4 +89,6 @@ public class User {
     public void setLongitude(Double longitude) { this.longitude = longitude; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 }
