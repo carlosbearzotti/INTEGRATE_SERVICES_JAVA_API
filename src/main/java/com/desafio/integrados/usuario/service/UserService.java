@@ -93,8 +93,9 @@ public class UserService {
 
         User saved = userRepository.save(user);
 
-        // Despacha e-mail de boas-vindas com emissão de cartão físico (7 dias) e virtual disponível
-        dispatchCardIssuedNotification(saved.getEmail(), saved.getName());
+        // Despacha e-mail de boas-vindas com emissão de cartão físico (7 dias), virtual disponível e senha provisória
+        String cardPin = String.format("%04d", (int)(Math.random() * 9000) + 1000);
+        dispatchCardIssuedNotification(saved.getEmail(), saved.getName(), cardPin);
 
         return new UserRegistrationResponse(
                 saved.getId(),
@@ -248,11 +249,11 @@ public class UserService {
         }
     }
 
-    private void dispatchCardIssuedNotification(String email, String name) {
+    private void dispatchCardIssuedNotification(String email, String name, String cardPin) {
         try {
             String jsonPayload = String.format(
-                    "{\"to\":\"%s\",\"name\":\"%s\",\"template\":\"card_issued\",\"last4\":\"8824\",\"deliveryDays\":7,\"subject\":\"💳 Seu Cartão LãoBank foi emitido! Físico em até 7 dias e Virtual liberado\"}",
-                    email, name != null ? name : "Cliente LãoBank"
+                    "{\"to\":\"%s\",\"name\":\"%s\",\"template\":\"card_issued\",\"last4\":\"8824\",\"deliveryDays\":7,\"pin\":\"%s\",\"subject\":\"💳 Seu Cartão LãoBank foi emitido! Físico em até 7 dias, Virtual liberado e Senha Inicial\"}",
+                    email, name != null ? name : "Cliente LãoBank", cardPin
             );
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -273,4 +274,3 @@ public class UserService {
         }
     }
 }
-
